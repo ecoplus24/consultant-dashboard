@@ -242,6 +242,17 @@ def scrape_semas():
         rows = soup.select("table tbody tr") or soup.select("table tr")
         print(f"[semas] 발견된 행: {len(rows)}개")
 
+        # 🔍 진단 로그: 발견된 모든 행의 제목 출력
+        print("[semas] --- 게시판 현재 목록 ---")
+        for i, row in enumerate(rows[:15], 1):
+            title_el = row.select_one("a")
+            if title_el:
+                row_title = title_el.get_text(strip=True)
+                if row_title and len(row_title) > 3:
+                    matched = "✓" if matches_keyword(row_title) else "✗"
+                    print(f"  {matched} {i:2d}. {row_title[:65]}")
+        print("[semas] --- 목록 끝 ---")
+
         # 1차: 키워드 매칭
         candidates = []
         for row in rows:
