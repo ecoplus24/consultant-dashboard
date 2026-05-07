@@ -658,7 +658,12 @@ function render() {
 
   grid.innerHTML = list.map(d => {
     const dday = daysUntil(d.deadline);
-    const ddayLabel = dday < 0 ? '마감' : (dday === 0 ? 'D-DAY' : `D-${dday}`);
+    let ddayLabel;
+    if (!d.deadline) ddayLabel = '미상';
+    else if (dday < 0) ddayLabel = '마감';
+    else if (dday === 0) ddayLabel = 'D-DAY';
+    else if (dday > 365) ddayLabel = '상시';
+    else ddayLabel = `D-${dday}`;
     const urgent = isUrgent(d);
     const newFlag = isNew(d);
     const isStar = starred.includes(d.id);
@@ -683,6 +688,7 @@ function render() {
         <div class="card-meta">
           ${d.region ? `<div class="meta-item"><span class="meta-label">지역</span><span class="meta-value">${d.region}</span></div>` : ''}
           ${d.fee ? `<div class="meta-item"><span class="meta-label">수가</span><span class="meta-value">${d.fee}</span></div>` : ''}
+          ${d.attachments && d.attachments.length > 0 ? `<div class="meta-item"><span class="meta-label">첨부</span><span class="meta-value">📎 ${d.attachments.length}개 (원문에서 확인)</span></div>` : ''}
           ${quals.length > 0 ? `
             <div class="meta-item"><span class="meta-label">자격</span>
               <div class="meta-value">
