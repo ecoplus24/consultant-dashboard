@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>컨설턴트 공고 통합 대시보드 · 에코플러스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-900: #0a1628;
+    --navy-800: #0f1f3a;
+    --navy-700: #142847;
+    --navy-600: #1e3a5f;
+    --navy-500: #2c4a73;
+    --gold-500: #c9a961;
+    --gold-400: #d8bd7a;
+    --gold-300: #e6c875;
+    --gold-100: #f4e4b8;
+    --ivory: #f5f1e8;
+    --ivory-dim: #d8d2c4;
+    --gray-300: #a8b2c1;
+    --gray-500: #6b7689;
+    --red-urgent: #d4574e;
+    --red-glow: rgba(212, 87, 78, 0.15);
+    --green-success: #6ba888;
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-card-hover: 0 8px 32px rgba(201, 169, 97, 0.15);
+    --border-subtle: rgba(201, 169, 97, 0.18);
+    --border-strong: rgba(201, 169, 97, 0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    background: var(--navy-900);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(201, 169, 97, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(30, 58, 95, 0.4) 0%, transparent 50%);
+    background-attachment: fixed;
+    color: var(--ivory);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .serif { font-family: 'Noto Serif KR', serif; }
+
+  /* ============ 로그인 화면 ============ */
+  #loginScreen {
+    position: fixed; inset: 0;
+    background: var(--navy-900);
+    background-image: radial-gradient(circle at center, var(--navy-700) 0%, var(--navy-900) 70%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .login-box {
+    background: linear-gradient(180deg, var(--navy-700) 0%, var(--navy-800) 100%);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 56px 48px;
+    width: 90%; max-width: 420px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+    position: relative;
+  }
+  .login-box::before {
+    content: ''; position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 60%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+  }
+  .login-mark {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 900; font-size: 28px;
+    color: var(--gold-500); letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .login-sub { color: var(--gray-300); font-size: 13px; letter-spacing: 0.15em; margin-bottom: 36px; }
+  .login-input {
+    width: 100%; background: var(--navy-900);
+    border: 1px solid var(--border-subtle);
+    color: var(--ivory); padding: 14px 16px; border-radius: 2px;
+    font-size: 15px; font-family: inherit; letter-spacing: 0.1em; text-align: center;
+    margin-bottom: 16px; transition: border-color 0.2s;
+  }
+  .login-input:focus { outline: none; border-color: var(--gold-500); }
+  .login-btn {
+    width: 100%; background: var(--gold-500); color: var(--navy-900);
+    border: none; padding: 14px; font-size: 14px; font-weight: 700;
+    letter-spacing: 0.2em; cursor: pointer; border-radius: 2px;
+    font-family: inherit; transition: background 0.2s;
+  }
+  .login-btn:hover { background: var(--gold-300); }
+  .login-hint { color: var(--gray-500); font-size: 11px; margin-top: 24px; letter-spacing: 0.1em; }
+
+  /* ============ 헤더 ============ */
+  .header {
+    background: linear-gradient(180deg, var(--navy-800) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 32px 0 24px;
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(12px);
+    background-color: rgba(10, 22, 40, 0.85);
+  }
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 900; font-size: 22px; color: var(--gold-500);
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand-mark {
+    width: 8px; height: 8px; background: var(--gold-500);
+    transform: rotate(45deg); display: inline-block;
+  }
+  .brand-sub { color: var(--ivory-dim); font-size: 11px; font-weight: 400; letter-spacing: 0.2em; margin-top: 2px; font-family: 'Noto Sans KR', sans-serif; }
+  .last-update { font-size: 12px; color: var(--gray-300); letter-spacing: 0.05em; }
+  .last-update span { color: var(--gold-400); }
+  .refresh-btn {
+    background: transparent; border: 1px solid var(--border-strong);
+    color: var(--gold-400); padding: 8px 14px; font-size: 12px;
+    cursor: pointer; border-radius: 2px; letter-spacing: 0.1em;
+    font-family: inherit; transition: all 0.2s;
+    margin-left: 12px;
+  }
+  .refresh-btn:hover { background: var(--gold-500); color: var(--navy-900); }
+
+  /* ============ 로딩 상태 ============ */
+  .loading-state {
+    text-align: center; padding: 80px 20px;
+    color: var(--gold-300);
+  }
+  .loading-spinner {
+    display: inline-block; width: 40px; height: 40px;
+    border: 3px solid var(--border-subtle);
+    border-top-color: var(--gold-500);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ 통계 영역 ============ */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin: 32px 0;
+  }
+  .stat-card {
+    background: linear-gradient(180deg, var(--navy-700) 0%, var(--navy-800) 100%);
+    border: 1px solid var(--border-subtle);
+    padding: 20px 24px; border-radius: 4px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold-500), transparent);
+  }
+  .stat-label {
+    font-size: 11px; color: var(--gray-300); letter-spacing: 0.2em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 32px; font-weight: 700; color: var(--gold-300);
+    line-height: 1;
+  }
+  .stat-unit { font-size: 14px; color: var(--ivory-dim); margin-left: 4px; font-weight: 400; }
+  .stat-card.urgent .stat-value { color: var(--red-urgent); }
+  .stat-card.urgent::before { background: linear-gradient(90deg, var(--red-urgent), transparent); }
+
+  /* ============ 필터 바 ============ */
+  .filter-bar {
+    background: var(--navy-800);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  }
+  .search-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-input {
+    width: 100%; background: var(--navy-900);
+    border: 1px solid var(--border-subtle);
+    color: var(--ivory); padding: 10px 14px 10px 40px;
+    border-radius: 2px; font-size: 14px; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { outline: none; border-color: var(--gold-500); }
+  .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--gold-500); font-size: 14px;
+  }
+  .filter-select {
+    background: var(--navy-900);
+    border: 1px solid var(--border-subtle);
+    color: var(--ivory); padding: 10px 14px;
+    border-radius: 2px; font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .filter-select:focus { outline: none; border-color: var(--gold-500); }
+
+  /* 칩(탭) */
+  .chip-row { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .chip {
+    background: transparent; border: 1px solid var(--border-subtle);
+    color: var(--ivory-dim); padding: 8px 16px; font-size: 13px;
+    border-radius: 24px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s; letter-spacing: 0.05em;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip:hover { border-color: var(--gold-400); color: var(--gold-300); }
+  .chip.active { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); font-weight: 700; }
+  .chip-count {
+    background: rgba(0,0,0,0.2); padding: 1px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 700;
+  }
+  .chip.active .chip-count { background: var(--navy-900); color: var(--gold-300); }
+
+  /* ============ 카드 그리드 ============ */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+    padding-bottom: 80px;
+  }
+  .card {
+    background: linear-gradient(180deg, var(--navy-700) 0%, var(--navy-800) 100%);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 24px;
+    position: relative; overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    display: flex; flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--border-strong);
+  }
+  .card.applied { opacity: 0.6; }
+  .card.applied::after {
+    content: '지원완료'; position: absolute; top: 50%; right: -34px;
+    transform: rotate(35deg) translateY(-50%);
+    background: var(--green-success); color: white;
+    padding: 4px 40px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.2em;
+  }
+  .card.urgent { border-color: var(--red-urgent); }
+  .card.urgent::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--red-urgent);
+  }
+
+  .badge-row {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 10px; padding: 3px 10px; border-radius: 2px;
+    letter-spacing: 0.15em; font-weight: 500;
+  }
+  .badge-agency {
+    background: var(--navy-600); color: var(--gold-300);
+    border: 1px solid var(--border-subtle);
+  }
+  .badge-type {
+    background: rgba(201, 169, 97, 0.12); color: var(--gold-300);
+  }
+  .badge-new {
+    background: var(--gold-500); color: var(--navy-900); font-weight: 700;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .badge-urgent {
+    background: var(--red-urgent); color: white; font-weight: 700;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
+
+  .card-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 17px; font-weight: 700; color: var(--ivory);
+    line-height: 1.4; margin-bottom: 14px;
+    min-height: 48px;
+  }
+
+  .deadline-row {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 12px 0; margin: 4px 0 16px;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .dday {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 24px; font-weight: 900; color: var(--gold-300);
+    line-height: 1;
+  }
+  .card.urgent .dday { color: var(--red-urgent); }
+  .deadline-date { font-size: 12px; color: var(--gray-300); }
+
+  .card-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .meta-item {
+    font-size: 12px; color: var(--ivory-dim);
+    display: flex; gap: 8px;
+  }
+  .meta-label {
+    color: var(--gold-500); min-width: 56px;
+    letter-spacing: 0.1em; font-size: 11px;
+  }
+  .meta-value { flex: 1; }
+
+  .qual-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .qual-tag {
+    font-size: 10px; padding: 2px 8px;
+    background: var(--navy-900); color: var(--ivory-dim);
+    border-radius: 2px;
+    border: 1px solid transparent;
+  }
+  .qual-tag.match {
+    background: rgba(107, 168, 136, 0.15); color: var(--green-success);
+    border-color: rgba(107, 168, 136, 0.3); font-weight: 500;
+  }
+
+  .match-score {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--green-success);
+    margin-top: 8px; letter-spacing: 0.05em;
+  }
+  .match-bar {
+    width: 60px; height: 3px; background: var(--navy-900);
+    border-radius: 2px; overflow: hidden;
+  }
+  .match-fill { height: 100%; background: var(--green-success); }
+
+  .card-actions {
+    display: flex; gap: 8px; margin-top: auto;
+    padding-top: 16px; border-top: 1px solid var(--border-subtle);
+  }
+  .action-btn {
+    flex: 1; padding: 9px; font-size: 12px;
+    background: transparent; border: 1px solid var(--border-subtle);
+    color: var(--ivory-dim); cursor: pointer; border-radius: 2px;
+    font-family: inherit; letter-spacing: 0.05em;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .action-btn:hover { border-color: var(--gold-400); color: var(--gold-300); }
+  .action-btn.primary { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); font-weight: 700; }
+  .action-btn.primary:hover { background: var(--gold-300); }
+  .action-btn.starred { color: var(--gold-300); border-color: var(--gold-400); }
+  .action-btn.applied { color: var(--green-success); border-color: var(--green-success); }
+
+  /* 진행상태 (지원완료시 표시) */
+  .status-track {
+    display: none; gap: 4px; margin-top: 10px;
+    padding: 10px; background: var(--navy-900); border-radius: 2px;
+  }
+  .card.applied .status-track { display: flex; }
+  .status-step {
+    flex: 1; padding: 5px 4px; font-size: 10px; text-align: center;
+    background: var(--navy-700); color: var(--gray-500);
+    cursor: pointer; border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+  .status-step.done { background: var(--green-success); color: white; font-weight: 500; }
+
+  /* ============ 빈 상태 ============ */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center; padding: 80px 20px;
+    color: var(--gray-300);
+  }
+  .empty-state .empty-mark {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 48px; color: var(--gold-500);
+    opacity: 0.4; margin-bottom: 16px;
+  }
+
+  /* ============ 푸터 ============ */
+  .footer {
+    text-align: center; padding: 24px;
+    color: var(--gray-500); font-size: 11px;
+    letter-spacing: 0.1em;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 40px;
+  }
+
+  /* ============ 모바일 ============ */
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-card { padding: 14px 16px; }
+    .stat-value { font-size: 24px; }
+    .card-grid { grid-template-columns: 1fr; }
+    .header { padding: 20px 0 16px; }
+    .brand { font-size: 18px; }
+    .filter-bar { padding: 12px; }
+    .card-title { font-size: 15px; min-height: auto; }
+  }
+
+  /* ============ 스크롤바 ============ */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--navy-900); }
+  ::-webkit-scrollbar-thumb { background: var(--navy-600); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-500); }
+</style>
+</head>
+<body>
+
+<!-- ============ 로그인 ============ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-mark">ECOPLUS</div>
+    <div class="login-sub">CONSULTANT INTELLIGENCE</div>
+    <input id="pwInput" type="password" class="login-input" placeholder="ACCESS CODE" autofocus />
+    <button class="login-btn" onclick="checkLogin()">ENTER</button>
+    <div class="login-hint">초기 비밀번호: ecoplus2026</div>
+  </div>
+</div>
+
+<!-- ============ 메인 ============ -->
+<div id="mainScreen" style="display:none;">
+
+  <header class="header">
+    <div class="container header-row">
+      <div>
+        <div class="brand">
+          <span class="brand-mark"></span>
+          컨설턴트 공고 인텔리전스
+        </div>
+        <div class="brand-sub">ECOPLUS · CONSULTANT OPPORTUNITY DASHBOARD</div>
+      </div>
+      <div>
+        <span class="last-update">최종 갱신: <span id="lastUpdate">로딩 중…</span></span>
+        <button class="refresh-btn" onclick="loadData()">↻ 갱신</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- 통계 -->
+    <section class="stats">
+      <div class="stat-card">
+        <div class="stat-label">전체 공고</div>
+        <div class="stat-value"><span id="statTotal">0</span><span class="stat-unit">건</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">신규 (24h)</div>
+        <div class="stat-value"><span id="statNew">0</span><span class="stat-unit">건</span></div>
+      </div>
+      <div class="stat-card urgent">
+        <div class="stat-label">마감 임박 (D-3)</div>
+        <div class="stat-value"><span id="statUrgent">0</span><span class="stat-unit">건</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">즐겨찾기</div>
+        <div class="stat-value"><span id="statStar">0</span><span class="stat-unit">건</span></div>
+      </div>
+    </section>
+
+    <!-- 필터 바 -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input id="searchInput" class="search-input" type="text" placeholder="제목·기관·키워드로 검색…" oninput="render()" />
+      </div>
+      <select id="agencyFilter" class="filter-select" onchange="render()">
+        <option value="all">전체 기관</option>
+      </select>
+      <select id="typeFilter" class="filter-select" onchange="render()">
+        <option value="all">전체 유형</option>
+        <option value="컨설턴트">컨설턴트</option>
+        <option value="평가위원">평가위원</option>
+        <option value="심사원">심사원</option>
+        <option value="멘토">멘토</option>
+        <option value="교육">교육과정</option>
+      </select>
+      <select id="sortBy" class="filter-select" onchange="render()">
+        <option value="deadline">마감 임박순</option>
+        <option value="newest">최신 등록순</option>
+        <option value="match">적합도순</option>
+      </select>
+    </div>
+
+    <!-- 칩(탭) -->
+    <div class="chip-row">
+      <button class="chip active" data-view="all" onclick="setView('all')">전체 <span class="chip-count" id="cnt-all">0</span></button>
+      <button class="chip" data-view="new" onclick="setView('new')">🆕 신규 <span class="chip-count" id="cnt-new">0</span></button>
+      <button class="chip" data-view="urgent" onclick="setView('urgent')">🔥 마감임박 <span class="chip-count" id="cnt-urgent">0</span></button>
+      <button class="chip" data-view="star" onclick="setView('star')">★ 즐겨찾기 <span class="chip-count" id="cnt-star">0</span></button>
+      <button class="chip" data-view="applied" onclick="setView('applied')">✓ 지원완료 <span class="chip-count" id="cnt-applied">0</span></button>
+    </div>
+
+    <!-- 카드 그리드 -->
+    <div id="cardGrid" class="card-grid">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>공고 데이터를 불러오는 중…</p>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    ECOPLUS CONSULTANT INTELLIGENCE · v1.0 · TG.KIM
+  </footer>
+</div>
+
+<script>
+// ============ 데이터 (data.json에서 로드) ============
+let DATA = [];
+
+// ============ 대표님 보유 자격 ============
+const MY_QUALS = ['경영지도사', '창업보육매니저', 'ISO 9001', 'ISO 14001', 'ISO 45001', 'MBA', '제조업', '안전보건', '재무'];
+
+// ============ 상태 ============
+let currentView = 'all';
+let starred = JSON.parse(localStorage.getItem('eco_starred') || '[]');
+let applied = JSON.parse(localStorage.getItem('eco_applied') || '{}');
+
+// ============ 로그인 ============
+function checkLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === 'ecoplus2026') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display = 'block';
+    loadData();
+  } else {
+    alert('비밀번호가 올바르지 않습니다.');
+  }
+}
+document.getElementById('pwInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') checkLogin();
+});
+
+// ============ 데이터 로드 ============
+async function loadData() {
+  try {
+    // 캐시 방지를 위해 timestamp 추가
+    const res = await fetch('data.json?t=' + Date.now());
+    if (!res.ok) throw new Error('data.json not found');
+    const json = await res.json();
+    DATA = json.items || [];
+
+    // 갱신 시각 표시
+    const updated = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
+    document.getElementById('lastUpdate').textContent =
+      `${updated.getFullYear()}.${String(updated.getMonth()+1).padStart(2,'0')}.${String(updated.getDate()).padStart(2,'0')} ${String(updated.getHours()).padStart(2,'0')}:${String(updated.getMinutes()).padStart(2,'0')}`;
+
+    initFilters();
+    render();
+  } catch (e) {
+    document.getElementById('cardGrid').innerHTML =
+      '<div class="empty-state"><div class="empty-mark">◇</div><p>아직 수집된 데이터가 없습니다.<br>스크레이퍼가 첫 실행되면 데이터가 표시됩니다.</p></div>';
+    document.getElementById('lastUpdate').textContent = '데이터 없음';
+  }
+}
+
+// ============ 유틸 ============
+function daysUntil(dateStr) {
+  if (!dateStr) return 999;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr);
+  return Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+}
+function isNew(item) {
+  return daysUntil(item.postedDate) >= -1;
+}
+function isUrgent(item) {
+  const d = daysUntil(item.deadline);
+  return d >= 0 && d <= 3;
+}
+function calcMatchScore(item) {
+  if (!item.qualifications || item.qualifications.length === 0) return 0;
+  const matched = item.qualifications.filter(q =>
+    MY_QUALS.some(mq => q.includes(mq))
+  ).length;
+  return Math.round((matched / item.qualifications.length) * 100);
+}
+function isMatched(qual) {
+  return MY_QUALS.some(mq => qual.includes(mq));
+}
+
+// ============ 렌더 ============
+function initFilters() {
+  const agencies = [...new Set(DATA.map(d => d.agency))];
+  const sel = document.getElementById('agencyFilter');
+  sel.innerHTML = '<option value="all">전체 기관</option>';
+  agencies.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    sel.appendChild(opt);
+  });
+}
+
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.view === v);
+  });
+  render();
+}
+
+function render() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const agencyF = document.getElementById('agencyFilter').value;
+  const typeF = document.getElementById('typeFilter').value;
+  const sortBy = document.getElementById('sortBy').value;
+
+  let list = DATA.slice();
+
+  if (search) {
+    list = list.filter(d =>
+      d.title.toLowerCase().includes(search) ||
+      d.agency.toLowerCase().includes(search) ||
+      (d.type && d.type.toLowerCase().includes(search))
+    );
+  }
+  if (agencyF !== 'all') list = list.filter(d => d.agency === agencyF);
+  if (typeF !== 'all') list = list.filter(d => d.type === typeF);
+
+  // 통계
+  document.getElementById('statTotal').textContent = DATA.length;
+  document.getElementById('statNew').textContent = DATA.filter(isNew).length;
+  document.getElementById('statUrgent').textContent = DATA.filter(isUrgent).length;
+  document.getElementById('statStar').textContent = starred.length;
+
+  document.getElementById('cnt-all').textContent = DATA.length;
+  document.getElementById('cnt-new').textContent = DATA.filter(isNew).length;
+  document.getElementById('cnt-urgent').textContent = DATA.filter(isUrgent).length;
+  document.getElementById('cnt-star').textContent = starred.length;
+  document.getElementById('cnt-applied').textContent = Object.keys(applied).length;
+
+  if (currentView === 'new') list = list.filter(isNew);
+  else if (currentView === 'urgent') list = list.filter(isUrgent);
+  else if (currentView === 'star') list = list.filter(d => starred.includes(d.id));
+  else if (currentView === 'applied') list = list.filter(d => applied[d.id]);
+
+  if (sortBy === 'deadline') {
+    list.sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline));
+  } else if (sortBy === 'newest') {
+    list.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
+  } else if (sortBy === 'match') {
+    list.sort((a, b) => calcMatchScore(b) - calcMatchScore(a));
+  }
+
+  const grid = document.getElementById('cardGrid');
+  if (list.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-mark">◇</div><p>해당 조건의 공고가 없습니다.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(d => {
+    const dday = daysUntil(d.deadline);
+    const ddayLabel = dday < 0 ? '마감' : (dday === 0 ? 'D-DAY' : `D-${dday}`);
+    const urgent = isUrgent(d);
+    const newFlag = isNew(d);
+    const isStar = starred.includes(d.id);
+    const isApp = !!applied[d.id];
+    const stage = applied[d.id]?.stage || 0;
+    const score = calcMatchScore(d);
+    const quals = d.qualifications || [];
+
+    return `
+      <div class="card ${urgent ? 'urgent' : ''} ${isApp ? 'applied' : ''}">
+        <div class="badge-row">
+          <span class="badge badge-agency">${d.agency}</span>
+          ${d.type ? `<span class="badge badge-type">${d.type}</span>` : ''}
+          ${newFlag ? '<span class="badge badge-new">NEW</span>' : ''}
+          ${urgent ? '<span class="badge badge-urgent">긴급</span>' : ''}
+        </div>
+        <div class="card-title">${d.title}</div>
+        <div class="deadline-row">
+          <span class="dday">${ddayLabel}</span>
+          <span class="deadline-date">${d.deadline || '날짜 미상'} 마감</span>
+        </div>
+        <div class="card-meta">
+          ${d.region ? `<div class="meta-item"><span class="meta-label">지역</span><span class="meta-value">${d.region}</span></div>` : ''}
+          ${d.fee ? `<div class="meta-item"><span class="meta-label">수가</span><span class="meta-value">${d.fee}</span></div>` : ''}
+          ${quals.length > 0 ? `
+            <div class="meta-item"><span class="meta-label">자격</span>
+              <div class="meta-value">
+                <div class="qual-tags">
+                  ${quals.map(q => `<span class="qual-tag ${isMatched(q) ? 'match' : ''}">${q}</span>`).join('')}
+                </div>
+                ${score > 0 ? `<div class="match-score">적합도 ${score}% <span class="match-bar"><span class="match-fill" style="width:${score}%"></span></span></div>` : ''}
+              </div>
+            </div>` : ''}
+        </div>
+        <div class="status-track">
+          ${['신청', '서류', '면접', '최종'].map((s, i) => `
+            <div class="status-step ${stage >= i ? 'done' : ''}" onclick="setStage('${d.id}', ${i})">${s}</div>
+          `).join('')}
+        </div>
+        <div class="card-actions">
+          <button class="action-btn ${isStar ? 'starred' : ''}" onclick="toggleStar('${d.id}')">
+            ${isStar ? '★ 저장됨' : '☆ 저장'}
+          </button>
+          <button class="action-btn ${isApp ? 'applied' : ''}" onclick="toggleApplied('${d.id}')">
+            ${isApp ? '✓ 지원함' : '○ 지원'}
+          </button>
+          <button class="action-btn primary" onclick="window.open('${d.url}', '_blank')">원문 →</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleStar(id) {
+  if (starred.includes(id)) starred = starred.filter(x => x !== id);
+  else starred.push(id);
+  localStorage.setItem('eco_starred', JSON.stringify(starred));
+  render();
+}
+function toggleApplied(id) {
+  if (applied[id]) delete applied[id];
+  else applied[id] = { stage: 0, appliedAt: new Date().toISOString() };
+  localStorage.setItem('eco_applied', JSON.stringify(applied));
+  render();
+}
+function setStage(id, s) {
+  if (!applied[id]) return;
+  applied[id].stage = applied[id].stage === s ? s - 1 : s;
+  if (applied[id].stage < 0) applied[id].stage = 0;
+  localStorage.setItem('eco_applied', JSON.stringify(applied));
+  render();
+}
+</script>
+</body>
+</html>
