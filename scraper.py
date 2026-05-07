@@ -1,13 +1,14 @@
 """
-컨설턴트 공고 스크레이퍼 v2
+컨설턴트 공고 스크레이퍼 v2.3
 대상: 소상공인시장진흥공단 (semas.or.kr)
 
-v2 개선사항:
+v2.3 개선사항 (검증됨):
+- 소진공 특화 패턴: javascript:fncGoDetail('숫자') 형식 정확 처리
 - 본문 페이지 자동 진입해서 마감일 정확히 추출
-- '26. 4. 30.(목) 같은 한국식 축약 표기 파싱
-- "신청기간: A ~ B" 패턴에서 마감일(B) 정확히 추출
-- 첨부파일(HWP/PDF) 정보 수집해서 메타데이터로 추가
-- 키워드 확장 (진단, 자문, 위촉, 멘토링)
+- '26. 11. 12.(목) 같은 한국식 축약 표기 파싱
+- "신청기간: A ~ B" 패턴에서 마감일(B) 정확 추출
+- 첨부파일(HWP/PDF) 정보 메타데이터 추가
+- URL 추출 4단계 다중 패턴 시도 + 안전 fallback
 - 사이트 부담 최소화 (본문 진입 사이 3초 대기)
 """
 
@@ -276,8 +277,18 @@ def scrape_semas():
             # 본문 URL 추출 (다중 패턴 시도)
             detail_url = None
 
+            # 패턴 0: ★ 소진공 특화 - href="javascript:fncGoDetail('53473')" 형식
+            if href and "fncGoDetail" in href:
+                m = re.search(r"fncGoDetail\s*\(\s*['\"]?(\d+)", href)
+                if m:
+                    board_no = m.group(1)
+                    detail_url = (
+                        f"https://www.semas.or.kr/web/board/webBoardView.kmdc"
+                        f"?bCd=1&pageId=PG90000001&b_idx={board_no}"
+                    )
+
             # 패턴 1: 정상 href (절대 URL)
-            if href and not href.startswith("javascript:") and href != "#":
+            if not detail_url and href and not href.startswith("javascript:") and href != "#":
                 if href.startswith("http"):
                     detail_url = href
                 elif href.startswith("/"):
