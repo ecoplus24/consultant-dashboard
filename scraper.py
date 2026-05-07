@@ -266,19 +266,28 @@ def scrape_semas():
             if not matches_keyword(title):
                 continue
 
-            # 본문 URL 추출
+            # ★ 매칭된 공고의 디버그 정보 출력
             href = title_el.get("href", "")
             onclick = title_el.get("onclick", "")
+            print(f"  [매칭] {title[:55]}")
+            print(f"    href: {(href[:120]) if href else '(비어있음)'}")
+            print(f"    onclick: {(onclick[:120]) if onclick else '(비어있음)'}")
 
+            # 본문 URL 추출 (다중 패턴 시도)
             detail_url = None
+
+            # 패턴 1: 정상 href (절대 URL)
             if href and not href.startswith("javascript:") and href != "#":
                 if href.startswith("http"):
                     detail_url = href
-                else:
+                elif href.startswith("/"):
                     detail_url = "https://www.semas.or.kr" + href
-            elif onclick:
-                # javascript:fnView('12345') 같은 패턴
-                m = re.search(r"['\"](\d{4,})['\"]", onclick)
+                else:
+                    detail_url = "https://www.semas.or.kr/" + href
+
+            # 패턴 2: onclick에서 4자리 이상 숫자 추출
+            if not detail_url and onclick:
+                m = re.search(r"['\"]?(\d{4,})['\"]?", onclick)
                 if m:
                     board_no = m.group(1)
                     detail_url = (
@@ -286,8 +295,28 @@ def scrape_semas():
                         f"?bCd=1&pageId=PG90000001&b_idx={board_no}"
                     )
 
-            if detail_url:
-                candidates.append((title, detail_url))
+            # 패턴 3: 행 전체 HTML에서 게시판 ID 패턴 찾기
+            if not detail_url:
+                row_html = str(row)
+                m = re.search(
+                    r"b_idx=(\d+)|boardId=(\d+)|articleNo=(\d+)|nttNo=(\d+)|seq=(\d+)",
+                    row_html
+                )
+                if m:
+                    board_no = next(g for g in m.groups() if g)
+                    detail_url = (
+                        f"https://www.semas.or.kr/web/board/webBoardView.kmdc"
+                        f"?bCd=1&pageId=PG90000001&b_idx={board_no}"
+                    )
+
+            # Fallback: 끝까지 못 찾으면 목록 URL로 (데이터 손실 방지)
+            if not detail_url:
+                print(f"    ⚠ 본문 URL 추출 실패 → 목록 URL로 fallback")
+                detail_url = list_url
+            else:
+                print(f"    ✓ URL 추출 성공: {detail_url[:80]}")
+
+            candidates.append((title, detail_url))
 
         print(f"[semas] 키워드 매칭 공고: {len(candidates)}건")
 
