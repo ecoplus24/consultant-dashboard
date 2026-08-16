@@ -137,6 +137,51 @@ class USProvider(CachedProvider):
         )
 
 
+class KISProvider(CachedProvider):
+    """
+    국내 주식 일봉을 한국투자증권 KIS API로 받는다.
+
+    pykrx와 달리 증권 계좌만 있으면 되고, 실전 주문에 쓰는 시세와 같은 출처라
+    백테스트와 실전의 데이터가 어긋나지 않는다.
+    """
+
+    name = "kis"
+
+    def __init__(self, client=None, use_cache: bool = True, cache_dir: Path | None = None):
+        super().__init__(use_cache=use_cache, cache_dir=cache_dir)
+        self._client = client
+
+    @property
+    def client(self):
+        # 실제로 데이터를 받을 때까지 인증을 미룬다 (캐시만 쓰는 경우 키가 없어도 된다)
+        if self._client is None:
+            from ..broker.kis import KISClient, KISConfig
+
+            self._client = KISClient(KISConfig.from_env())
+        return self._client
+
+    def _download(self, symbol: str, start: str, end: str) -> pd.DataFrame:
+        rows = self.client.daily_bars(symbol, start, end, adjusted=True)
+        if not rows:
+            return pd.DataFrame(columns=OHLCV)
+
+        frame = pd.DataFrame(
+            [
+                {
+                    "date": r["stck_bsop_date"],
+                    "open": r.get("stck_oprc"),
+                    "high": r.get("stck_hgpr"),
+                    "low": r.get("stck_lwpr"),
+                    "close": r.get("stck_clpr"),
+                    "volume": r.get("acml_vol"),
+                }
+                for r in rows
+            ]
+        )
+        frame["date"] = pd.to_datetime(frame["date"], format="%Y%m%d")
+        return frame.set_index("date")
+
+
 class CSVProvider(DataProvider):
     """`{디렉터리}/{종목}.csv`에서 읽는다. 자체 보유 데이터를 붙일 때 쓴다."""
 
@@ -201,6 +246,8 @@ def get_provider(market: str, **kwargs) -> DataProvider:
     key = market.strip().lower()
     if key in ("kr", "krx", "kospi", "kosdaq"):
         return KRXProvider(**kwargs)
+    if key == "kis":
+        return KISProvider(**kwargs)
     if key in ("us", "nyse", "nasdaq"):
         return USProvider(**kwargs)
     if key in ("synthetic", "sim", "test"):

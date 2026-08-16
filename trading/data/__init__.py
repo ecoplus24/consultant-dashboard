@@ -3,6 +3,7 @@
 from .base import DataProvider, MarketView, PriceData
 from .providers import (
     CSVProvider,
+    KISProvider,
     KRXProvider,
     SyntheticProvider,
     USProvider,
@@ -14,6 +15,7 @@ __all__ = [
     "MarketView",
     "PriceData",
     "CSVProvider",
+    "KISProvider",
     "KRXProvider",
     "SyntheticProvider",
     "USProvider",
